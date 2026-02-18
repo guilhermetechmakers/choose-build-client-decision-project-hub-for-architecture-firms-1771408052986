@@ -19,6 +19,7 @@ import { useAuth } from "@/context/AuthProvider";
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().optional().default(true),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -35,12 +36,16 @@ export function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: "", password: "", rememberMe: true },
   });
 
   const onSubmit = async (data: FormData) => {
     try {
-      await login(data);
+      await login({
+        email: data.email,
+        password: data.password,
+        rememberMe: data.rememberMe,
+      });
       toast.success("Signed in successfully");
       navigate(returnUrl, { replace: true });
     } catch (err) {
@@ -87,12 +92,24 @@ export function LoginPage() {
                 {errors.password && (
                   <p className="text-sm text-destructive">{errors.password.message}</p>
                 )}
-                <Link
-                  to="/password-reset"
-                  className="text-sm text-primary hover:underline block"
-                >
-                  Forgot password?
-                </Link>
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                      {...register("rememberMe")}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      Remember me
+                    </span>
+                  </label>
+                  <Link
+                    to="/password-reset"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
               </div>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Signing in…" : "Sign in"}

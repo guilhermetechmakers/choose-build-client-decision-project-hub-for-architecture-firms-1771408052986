@@ -8,6 +8,7 @@ export const AUTH_TOKEN_KEYS = {
 export interface SignInInput {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface AuthResponse {
@@ -21,4 +22,15 @@ export interface RefreshResponse {
   access_token: string;
   refresh_token?: string;
   expires_in?: number;
+}
+
+export interface SignUpInput {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface SignUpResponse {
+  user?: { id: string; email: string; name: string };
+  message?: string;
 }

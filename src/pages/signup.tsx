@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { signUp } from "@/services/auth";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -23,6 +25,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function SignupPage() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -32,8 +35,14 @@ export function SignupPage() {
     defaultValues: { name: "", email: "", password: "" },
   });
 
-  const onSubmit = async (_data: FormData) => {
-    await new Promise((r) => setTimeout(r, 500));
+  const onSubmit = async (data: FormData) => {
+    try {
+      await signUp({ name: data.name, email: data.email, password: data.password });
+      toast.success("Account created. Please sign in.");
+      navigate("/login", { replace: true });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Sign up failed");
+    }
   };
 
   return (
