@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { Menu, Bell, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthProvider";
 
 export function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -60,7 +61,9 @@ export function DashboardLayout() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My account</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                {user?.name ?? user?.email ?? "My account"}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to="/dashboard/settings">Profile</Link>
@@ -69,8 +72,8 @@ export function DashboardLayout() {
                 <Link to="/dashboard/billing">Billing</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to="/login">Log out</Link>
+              <DropdownMenuItem onClick={() => void logout()}>
+                Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

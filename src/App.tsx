@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/context/AuthProvider";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LandingPage } from "@/pages/landing";
 import { LoginPage } from "@/pages/login";
 import { SignupPage } from "@/pages/signup";
@@ -28,7 +30,7 @@ import { HelpPage } from "@/pages/help";
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -44,7 +46,14 @@ function App() {
           <Route path="/404" element={<NotFoundPage />} />
           <Route path="/500" element={<ErrorPage />} />
 
-          <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<DashboardOverviewPage />} />
             <Route path="projects" element={<ProjectsListPage />} />
             <Route path="projects/:projectId" element={<ProjectBoardPage />} />
@@ -58,15 +67,29 @@ function App() {
             <Route path="reports" element={<ReportsPage />} />
             <Route path="billing" element={<BillingPage />} />
             <Route path="settings" element={<SettingsPage />} />
-            <Route path="admin" element={<AdminDashboardPage />} />
-            <Route path="admin/users" element={<UserManagementPage />} />
+            <Route
+              path="admin"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/users"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <UserManagementPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" richColors />
-    </>
+    </AuthProvider>
   );
 }
 

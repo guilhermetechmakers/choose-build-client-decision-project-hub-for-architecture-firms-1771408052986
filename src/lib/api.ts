@@ -1,3 +1,9 @@
+import {
+  clearSession,
+  getAccessToken,
+  refreshToken,
+} from "@/services/auth";
+
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 
 export interface ApiError {
@@ -8,10 +14,11 @@ export interface ApiError {
 
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retried = false
 ): Promise<T> {
   const url = endpoint.startsWith("http") ? endpoint : `${API_BASE}${endpoint}`;
-  const token = localStorage.getItem("access_token");
+  const token = getAccessToken();
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
@@ -20,6 +27,16 @@ async function request<T>(
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
   const res = await fetch(url, { ...options, headers });
+  if (res.status === 401 && !retried) {
+    const refreshed = await refreshToken();
+    if (refreshed) return request<T>(endpoint, options, true);
+    clearSession();
+    const err: ApiError = {
+      message: "Session expired. Please sign in again.",
+      status: 401,
+    };
+    throw err;
+  }
   if (!res.ok) {
     const err: ApiError = {
       message: (await res.json().catch(() => ({})))?.message ?? res.statusText,

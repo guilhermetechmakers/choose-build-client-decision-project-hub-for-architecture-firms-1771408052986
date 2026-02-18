@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthProvider";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -22,6 +24,11 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl") ?? "/dashboard";
+
   const {
     register,
     handleSubmit,
@@ -31,8 +38,14 @@ export function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
-  const onSubmit = async (_data: FormData) => {
-    await new Promise((r) => setTimeout(r, 500));
+  const onSubmit = async (data: FormData) => {
+    try {
+      await login(data);
+      toast.success("Signed in successfully");
+      navigate(returnUrl, { replace: true });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Sign in failed");
+    }
   };
 
   return (
